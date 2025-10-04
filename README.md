@@ -1,5 +1,65 @@
 # Employee_Attendence_System
-BASIC
+How to run:
+NOTE: First do the frontend then do the backend.
+## Backend (Flask + MySQL)
+
+1. **Clone the repository**  
+  ```bash
+  git clone <repo-url>
+  cd Employee_Attendence_System
+  ```
+2. ```bash
+    cd backend
+   ```
+3. **Set up a Python virtual environment**  
+  ```bash
+  python -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
+  ```
+4. **Install backend dependencies**  
+  ```bash
+  pip install -r requirements.txt
+  ```
+5. Update envvironment file:
+      provided to you
+      Put Mysql details
+
+6. create database in Mysql
+
+7. put sample data in it for each table i will also provide it.
+
+8. **Run the backend server**  
+  ```bash
+  python main.py
+  ```
+
+---
+
+## Frontend (React)
+1. Go to project folder
+
+2. open terminal
+
+3. put this
+  ```bash
+      npm create vite@latest eas-app -- --template react-ts 
+  ```
+
+4. ```bash
+      npm install -D postcss lucide-react axios react-router-dom @supabase/supabase-js lucide-react react react-dom @eslint/js @types/react @types/react-dom @vitejs/plugin-react autoprefixer eslint eslint-plugin-react-hooks eslint-plugin-react-refresh globals postcss tailwindcss typescript typescript-eslint vite tailwindcss@3.4.14 autoprefixer
+  ```
+
+5. ```bash
+      npx tailwindcss init -p  
+  ```
+
+
+6. **Start the frontend server**  
+  ```bash
+  npm run dev
+  ```
+
+Make sure both servers are running simultaneously.
 
 
 Schema:
