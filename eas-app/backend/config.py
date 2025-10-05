@@ -1,21 +1,25 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
-
 
 class Settings(BaseSettings):
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 3306
-    DB_USER: str = "root"
-    DB_PASSWORD: str = ""
-    DB_NAME: str = "emp_attendance"
+    APP_NAME: str
+    DEBUG: bool = False
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
 
-    JWT_SECRET_KEY: str = "Summa123"
+    # Database
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
+
+    # JWT
+    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     class Config:
         env_file = ".env"
-        case_sensitive = True
-
+        env_file_encoding = "utf-8"
 
 settings = Settings()

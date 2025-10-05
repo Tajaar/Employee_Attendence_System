@@ -1,3 +1,4 @@
+//eas-app/src/components/Login.tsx
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';

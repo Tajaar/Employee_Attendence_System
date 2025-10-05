@@ -1,3 +1,4 @@
+//eas-app/src/components/AdminDashboard.tsx
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../services/api';

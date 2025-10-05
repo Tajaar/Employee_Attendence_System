@@ -1,3 +1,4 @@
+// eas-app/src/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { apiService } from '../services/api';
@@ -39,16 +40,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await apiService.login({ email, password });
+  const response = await apiService.login({ email, password });
 
-    if (response.success && response.data) {
-      localStorage.setItem('auth_token', response.data.token);
-      setUser(response.data.user);
+  // TypeScript-safe check
+  if (response.success && response.data) {
+    const { user, access_token } = response.data;
+    if (access_token && user) {
+      localStorage.setItem('auth_token', access_token);
+      setUser(user);
       return { success: true };
     }
+  }
 
-    return { success: false, error: response.error || 'Login failed' };
-  };
+  return { success: false, error: response.error || 'Login failed' };
+};
+
 
   const logout = async () => {
     await apiService.logout();
@@ -68,8 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }
