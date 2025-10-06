@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, CircleAlert as AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
