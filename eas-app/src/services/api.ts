@@ -4,28 +4,28 @@ import type {
   ApiResponse,
   AttendanceLog,
   AttendanceSummary,
-  LoginCredentials,
   User,
 } from '../types';
 
 class ApiService {
-  private getAuthToken(): string | null {
-    // Always read token from localStorage automatically
-    return localStorage.getItem('auth_token');
+  private getCurrentUser(): User | null {
+    const storedUser = localStorage.getItem('user_data');
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      return null;
+    }
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const token = this.getAuthToken();
-
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
-
-    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -38,7 +38,7 @@ class ApiService {
       if (!response.ok) {
         return {
           success: false,
-          error: data.message || data.error || 'Request failed',
+          error: data.detail || data.message || data.error || 'Request failed',
         };
       }
 
@@ -55,10 +55,9 @@ class ApiService {
     }
   }
 
-  // ---------------- AUTH ----------------
   async login(
-    credentials: LoginCredentials
-  ): Promise<ApiResponse<{ user: User; access_token: string }>> {
+    credentials: { email: string }
+  ): Promise<ApiResponse<{ user: User }>> {
     return this.request(API_ENDPOINTS.auth.login, {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -69,42 +68,46 @@ class ApiService {
     return this.request(API_ENDPOINTS.auth.logout, { method: 'POST' });
   }
 
-  async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request(API_ENDPOINTS.auth.me);
-  }
-
-  // ---------------- ATTENDANCE ----------------
   async markAttendanceIn(): Promise<ApiResponse<AttendanceLog>> {
-    return this.request(API_ENDPOINTS.attendance.markIn, { method: 'POST' });
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('User not logged in');
+    return this.request(API_ENDPOINTS.attendance.markIn(user.id), { method: 'POST' });
   }
 
   async markAttendanceOut(): Promise<ApiResponse<AttendanceLog>> {
-    return this.request(API_ENDPOINTS.attendance.markOut, { method: 'POST' });
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('User not logged in');
+    return this.request(API_ENDPOINTS.attendance.markOut(user.id), { method: 'POST' });
   }
 
   async getMyAttendanceLogs(
     startDate?: string,
     endDate?: string
   ): Promise<ApiResponse<AttendanceLog[]>> {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('User not logged in');
     const params = new URLSearchParams();
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return this.request(`${API_ENDPOINTS.attendance.getMyLogs}${query}`);
+    const queryStr = params.toString();
+    const query = queryStr ? '?' + queryStr : '';
+    return this.request(API_ENDPOINTS.attendance.getMyLogs(user.id) + query);
   }
 
   async getMyAttendanceSummary(
     startDate?: string,
     endDate?: string
   ): Promise<ApiResponse<AttendanceSummary[]>> {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('User not logged in');
     const params = new URLSearchParams();
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return this.request(`${API_ENDPOINTS.attendance.getMySummary}${query}`);
+    const queryStr = params.toString();
+    const query = queryStr ? '?' + queryStr : '';
+    return this.request(API_ENDPOINTS.attendance.getMySummary(user.id) + query);
   }
 
-  // ---------------- ADMIN ----------------
   async getAllEmployees(): Promise<ApiResponse<User[]>> {
     return this.request(API_ENDPOINTS.admin.getAllEmployees);
   }
@@ -117,15 +120,17 @@ class ApiService {
     const params = new URLSearchParams();
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return this.request(`${API_ENDPOINTS.admin.getEmployeeAttendance(employeeId)}${query}`);
+    const queryStr = params.toString();
+    const query = queryStr ? '?' + queryStr : '';
+    return this.request(API_ENDPOINTS.admin.getEmployeeAttendance(employeeId) + query);
   }
 
   async getAllAttendanceSummary(date?: string): Promise<ApiResponse<AttendanceSummary[]>> {
     const params = new URLSearchParams();
     if (date) params.append('date', date);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return this.request(`${API_ENDPOINTS.admin.getAllAttendanceSummary}${query}`);
+    const queryStr = params.toString();
+    const query = queryStr ? '?' + queryStr : '';
+    return this.request(API_ENDPOINTS.admin.getAllAttendanceSummary + query);
   }
 
   async getAttendanceLogs(
@@ -137,8 +142,9 @@ class ApiService {
     if (employeeId) params.append('employee_id', employeeId.toString());
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return this.request(`${API_ENDPOINTS.admin.getAttendanceLogs}${query}`);
+    const queryStr = params.toString();
+    const query = queryStr ? '?' + queryStr : '';
+    return this.request(API_ENDPOINTS.admin.getAttendanceLogs + query);
   }
 }
 

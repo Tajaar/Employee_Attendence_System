@@ -7,7 +7,7 @@ import type { User } from '../types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAdmin: boolean;
   isEmployee: boolean;
@@ -24,41 +24,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
+    const storedUser = localStorage.getItem('user_data');
+    if (!storedUser) {
       setLoading(false);
       return;
     }
 
-    const response = await apiService.getCurrentUser();
-    if (response.success && response.data) {
-      setUser(response.data);
-    } else {
-      localStorage.removeItem('auth_token');
+    try {
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+    } catch {
+      localStorage.removeItem('user_data');
     }
     setLoading(false);
   };
 
-  const login = async (email: string, password: string) => {
-  const response = await apiService.login({ email, password });
+  const login = async (email: string) => {
+    const response = await apiService.login({ email });
 
-  // TypeScript-safe check
-  if (response.success && response.data) {
-    const { user, access_token } = response.data;
-    if (access_token && user) {
-      localStorage.setItem('auth_token', access_token);
-      setUser(user);
-      return { success: true };
+    if (response.success && response.data) {
+      const { user } = response.data;
+      if (user) {
+        localStorage.setItem('user_data', JSON.stringify(user));
+        setUser(user);
+        return { success: true };
+      }
     }
-  }
 
-  return { success: false, error: response.error || 'Login failed' };
-};
-
+    return { success: false, error: response.error || 'Login failed' };
+  };
 
   const logout = async () => {
     await apiService.logout();
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
     setUser(null);
   };
 

@@ -5,13 +5,12 @@ export const API_ENDPOINTS = {
   auth: {
     login: '/auth/login',
     logout: '/auth/logout',
-    me: '/auth/me',
   },
   attendance: {
-    markIn: '/attendance/in',
-    markOut: '/attendance/out',
-    getMyLogs: '/attendance/logs/me',
-    getMySummary: '/attendance/summary/me',
+    markIn: (employeeId: number) => `/attendance/in/${employeeId}`,
+    markOut: (employeeId: number) => `/attendance/out/${employeeId}`,
+    getMyLogs: (employeeId: number) => `/attendance/logs/${employeeId}`,
+    getMySummary: (employeeId: number) => `/attendance/summary/${employeeId}`,
   },
   admin: {
     getAllEmployees: '/admin/employees',

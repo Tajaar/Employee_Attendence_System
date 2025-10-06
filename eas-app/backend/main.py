@@ -2,7 +2,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth_router, attendance_router, admin_router
-from auth import get_password_hash
 
 app = FastAPI(
     title="Employee Attendance System API",

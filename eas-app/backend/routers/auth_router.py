@@ -1,28 +1,29 @@
 #eas-app/backend/routers/auth_router.py
-from fastapi import APIRouter, HTTPException, status, Depends
-from datetime import timedelta
-from models import UserLogin, TokenResponse, UserResponse
-from auth import authenticate_user, create_access_token, get_current_user
-from config import settings
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, EmailStr
+from models import UserResponse
+from auth import authenticate_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(user_login: UserLogin):
-    user = authenticate_user(user_login.email, user_login.password)
+class SimpleLoginRequest(BaseModel):
+    email: EmailStr
+
+
+class LoginResponse(BaseModel):
+    user: UserResponse
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login(login_request: SimpleLoginRequest):
+    user = authenticate_user(login_request.email)
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="User not found",
         )
-
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user["id"]},
-        expires_delta=access_token_expires
-    )
 
     user_response = UserResponse(
         id=user["id"],
@@ -33,17 +34,9 @@ async def login(user_login: UserLogin):
         is_active=user["is_active"]
     )
 
-    return TokenResponse(
-        access_token=access_token,
-        user=user_response
-    )
+    return LoginResponse(user=user_response)
 
 
 @router.post("/logout")
-async def logout(current_user: UserResponse = Depends(get_current_user)):
+async def logout():
     return {"success": True, "message": "Logged out successfully"}
-
-
-@router.get("/me", response_model=UserResponse)
-async def get_me(current_user: UserResponse = Depends(get_current_user)):
-    return current_user
